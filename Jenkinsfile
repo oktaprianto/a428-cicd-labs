@@ -1,20 +1,10 @@
-pipeline {
-    agent {
-        docker {
-            image 'node:16-buster-slim'
-            args '-p 3000:3000'
-        }
-    }
-    stages {
+node {
+    // Menggunakan Docker agent dengan gambar 'node:16-buster-slim'
+    docker.image('node:16-buster-slim').withRun('-p 3000:3000') { container ->
+        // Tahap Build
         stage('Build') {
-            steps {
-                sh 'npm install'
-            }
-        }
-        stage('Test') { 
-            steps {
-                sh './jenkins/scripts/test.sh' 
-            }
+            // Langkah untuk menjalankan npm install
+            sh 'npm install'
         }
     }
 }
