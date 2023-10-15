@@ -1,16 +1,10 @@
 node {
-    def dockerImage = 'node:16-buster-slim'
-
-    stage('Build') {
-        try {
-            checkout scm
-            docker.image(dockerImage).inside("-p 3000:3000") {
+    docker.image('node:16-buster-slim').withRun('-p 3000:3000') { container ->
+        stage('Build') {
+            echo 'Building...'
+            container.inside {
                 sh 'npm install'
-                // Additional build steps can be added here if needed
             }
-        } catch (Exception e) {
-            currentBuild.result = 'FAILURE'
-            throw e
         }
     }
 }
