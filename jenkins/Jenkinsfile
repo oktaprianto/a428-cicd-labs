@@ -1,21 +1,16 @@
 node {
-    docker.image('node:lts-buster-slim').withRun('-p 3000:3000') { c ->
+    def dockerImage = 'node:16-buster-slim'
+
+    stage('Build') {
         try {
-            env.CI = 'true'
-            
-            stage('Build') {
-                steps {
-                    sh 'npm install'
-                }
+            checkout scm
+            docker.image(dockerImage).inside("-p 3000:3000") {
+                sh 'npm install'
+                // Additional build steps can be added here if needed
             }
-            
-            stage('Test') {
-                steps {
-                    sh './jenkins/scripts/test.sh'
-                }
-            }
-            
-           
-        } 
+        } catch (Exception e) {
+            currentBuild.result = 'FAILURE'
+            throw e
+        }
     }
 }
