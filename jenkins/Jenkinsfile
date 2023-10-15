@@ -1,10 +1,13 @@
 node {
-    docker.image('node:16-buster-slim').withRun('-p 3000:3000') { container ->
-        stage('Build') {
-            echo 'Building...'
-            container.inside {
-                sh 'npm install'
-            }
+    // Menggunakan alat (tool) NodeJS yang telah dikonfigurasi di Jenkins
+    def nodejsHome = tool 'NodeJS'
+
+    // Menjalankan perintah npm install di dalam kontainer Docker
+    stage('Build') {
+        echo 'Building...'
+        // Menggunakan image node:16-buster-slim dan bind mount volume untuk mengakses alat NodeJS
+        docker.image('node:16-buster-slim').inside("-v ${nodejsHome}:/usr/local/bin/node") {
+            sh "${nodejsHome}/bin/npm install"
         }
     }
 }
