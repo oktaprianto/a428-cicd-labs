@@ -1,16 +1,24 @@
 node {
-    def dockerImage = 'node:16-buster-slim'
-
+    def npmHome = tool name: 'NodeJS', type: 'npm'
+    env.PATH = "${npmHome}/bin:${env.PATH}"
+    
     stage('Build') {
-        try {
-            checkout scm
-            docker.image(dockerImage).inside("-p 3000:3000") {
-                sh 'npm install'
-                // Additional build steps can be added here if needed
+        steps {
+            script {
+                docker.image('node:16-buster-slim').withRun('-p 3000:3000') { c ->
+                    sh 'npm install'
+                }
             }
-        } catch (Exception e) {
-            currentBuild.result = 'FAILURE'
-            throw e
+        }
+    }
+    
+    stage('Test') {
+        steps {
+            script {
+                docker.image('node:16-buster-slim').inside('-p 3000:3000') {
+                    sh './jenkins/scripts/test.sh'
+                }
+            }
         }
     }
 }
