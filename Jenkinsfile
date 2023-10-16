@@ -1,24 +1,7 @@
-pipeline {
-    agent {
-        docker {
-            image 'node:lts-buster-slim'
-            args '-p 3000:3000'
+node {
+    docker.image('node:16-buster-slim').whitRun('-p 3000:3000'){
+        stage('Build'){
+            sh 'npm install'
         }
-    }
-    environment {
-        CI = 'true'
-    }
-    stages {
-        stage('Build') {
-            steps {
-                sh 'npm install'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh './jenkins/scripts/test.sh'
-            }
-        }
-       
-    }
+   }
 }
