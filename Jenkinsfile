@@ -1,27 +1,31 @@
-pipeline {
-    agent {
-        docker {
-            image 'node:16-buster-slim'
-            args '-p 3000:3000'
-        }
-    }
-    stages {
-        stage('Build') {
-            steps {
-                sh 'npm install'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh './jenkins/scripts/test.sh'
-            }
-        }
-        stage('Deploy') { 
-            steps {
-                sh './jenkins/scripts/deliver.sh' 
-                input message: 'Sudah selesai menggunakan React App? (Klik "Proceed" untuk mengakhiri)' 
-                sh './jenkins/scripts/kill.sh' 
+node {
+    def dockerImage = 'node:16-buster-slim'
+    
+    stage('Build') {
+        steps {
+            script {
+                def buildResult = docker.image(dockerImage).inside("-p 3000:3000") {
+                    sh 'npm install'
+                }
+                if (buildResult != 0) {
+                    error "Build failed"
+                }
             }
         }
     }
+    
+    stage('Test') {
+        steps {
+            script {
+                def testResult = docker.image(dockerImage).inside("-p 3000:3000") {
+                    sh './jenkins/scripts/test.sh'
+                }
+                if (testResult != 0) {
+                    error "Tests failed"
+                }
+            }
+        }
+    }
+    
+    
 }
