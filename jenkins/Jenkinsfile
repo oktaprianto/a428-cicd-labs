@@ -1,13 +1,30 @@
-node {
-    // Menggunakan alat (tool) NodeJS yang telah dikonfigurasi di Jenkins
-    def nodejsHome = tool 'NodeJS'
-
-    // Menjalankan perintah npm install di dalam kontainer Docker
-    stage('Build') {
-        echo 'Building...'
-        // Menggunakan image node:16-buster-slim dan bind mount volume untuk mengakses alat NodeJS
-        docker.image('node:16-buster-slim').inside("-v ${nodejsHome}:/usr/local/bin/node") {
-            sh "${nodejsHome}/bin/npm install"
+pipeline {
+    agent {
+        docker {
+            image 'node:lts-buster-slim'
+            args '-p 3000:3000'
+        }
+    }
+    environment {
+        CI = 'true'
+    }
+    stages {
+        stage('Build') {
+            steps {
+                sh 'npm install'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh './jenkins/scripts/test.sh'
+            }
+        }
+        stage('Deliver') {
+            steps {
+                sh './jenkins/scripts/deliver.sh'
+                input message: 'Finished using the website? (Click "Proceed" to continue)'
+                sh './jenkins/scripts/kill.sh'
+            }
         }
     }
 }
